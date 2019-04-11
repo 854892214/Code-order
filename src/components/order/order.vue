@@ -8,7 +8,7 @@
         >
           <a
             class="mui-control-item Set-Width"
-            :data-index="i+1"
+            :data-index="i"
             :href="'#content'+(i+1)"
             v-for="(item,i) in list"
             :key="i"
@@ -37,17 +37,19 @@
               <h4 class="type">月销{{n.quantity}}份 好评率100%</h4>
               <h4 class="price">{{n.amount}}</h4>
             </div>
-            <div class="flex-cart" @click="GetIndex(i)">
+            <div class="flex-cart" @click="GetIndex">
               <div
                 class="mui-icon mui-icon-minus cart-btn transform"
                 v-if="n.num>0"
-                @click="minCount(i)"
+                @click="minCount"
+                :data-lid="item.id"
+                :data-nid="i"
               ></div>
               <span
                 style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
                 v-if="n.num>0"
               >{{n.num}}</span>
-              <div class="mui-icon mui-icon-plus cart-btn" @click="addCount" :data-pid="item.id"></div>
+              <div class="mui-icon mui-icon-plus cart-btn" @click="addCount(i)" :data-pid="item.id"></div>
             </div>
           </div>
         </div>
@@ -87,12 +89,12 @@
       </div>
       <div class="list-content">
         <ul>
-          <li class="food border-1px">
-            <div class="inline-block">芒果布丁</div>
+          <li class="food border-1px" v-for="(item,i) in ShopCartList" :key="i">
+            <div class="inline-block">{{item.name}}</div>
             <div class="inline-block list-float-right">
-              <span class="price">$30.00</span>
+              <span class="price">${{item.amount}}</span>
               <div class="mui-icon mui-icon-minus cart-btn transform padding" @click="minCount(i)"></div>
-              <span style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;">10</span>
+              <span style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;">{{item.num}}</span>
               <div class="mui-icon mui-icon-plus cart-btn padding" @click="addCount(i)"></div>
             </div>
           </li>
@@ -401,20 +403,68 @@ export default {
       //菜单页左侧的菜品
       //注:数组里放一个空的对象,让初始化的dom不会报错,并不影响数组结果
       list: [{}],
-      rows: [],
       //菜单栏右侧的循环数组
       Count: 0,
       //购物车商品列表
       ShopCartList: [],
-      Item: 0
+      //用于保存菜单数组的索引
+      Item: -1,
+      //存放选中的菜品
+      basket: [],
+      //存放总价
+      price: 0
     };
   },
   methods: {
+    //按id过滤basket数组,
+    basketFilter() {
+      //this.ShopCartList.push=[]
+      var str = [];
+      for (var i = 0; i < this.basket.length; i++) {
+        //将所有选中菜品的id放进数据,用GoMore进行去重
+        str.push(this.basket[i].id);
+      }
+      var length = this.GoMore(str);
+      for (var i = 0; i < length.length; i++) {
+        var id = length[i];
+        var tmp;
+        //拿到id进来，若找到一个对应id相等的数据，则保存该id的对象
+        for (var item of this.basket) {
+          if (item.id == id) {
+            tmp = item;
+          }
+        }
+        //将符合条件的菜品，加入数据，一会儿在购物车显示
+        this.ShopCartList.push(tmp);
+      }
+    },
+    //去重方法
+    GoMore(array) {
+      var temp = [];
+      var index = [];
+      var l = array.length;
+      for (var i = 0; i < l; i++) {
+        for (var j = i + 1; j < l; j++) {
+          if (array[i] === array[j]) {
+            i++;
+            j = i;
+          }
+        }
+        temp.push(array[i]);
+        index.push(i);
+      }
+      return temp;
+    },
     //利用事件冒泡,获取到菜系里菜单的index
-    GetIndex(index) {
-      var index = index;
-      this.Item = index;
-      index = 0;
+    GetIndex(e) {
+      for (var i = 0; i < this.list.length; i++) {
+        if (this.list[i].id == e.target.dataset.pid) {
+          var rows = this.list[i];
+          rows.goodsList[this.Item].num++;
+          this.basket.push(rows.goodsList[this.Item]);
+          console.log(this.basket);
+        }
+      }
     },
     //页面初始化 获取数据  组件创建后触发一次
     LoadMore() {
@@ -436,13 +486,61 @@ export default {
     //控制购物车模态窗的显示  两层控制 这里控制开关  另外一处在购物车图标右上角的Count上
     toggleList() {
       this.popupVisible = !this.popupVisible;
-      console.log(this.popupVisible);
+      var str = [];
+      this.ShopCartList = [];
+      for (var i = 0; i < this.basket.length; i++) {
+        //将所有选中菜品的id放进数据,用GoMore进行去重
+        str.push(this.basket[i].id);
+      }
+      var length = this.GoMore(str);
+      for (var i = 0; i < length.length; i++) {
+        var id = length[i];
+        var tmp;
+        //拿到id进来，若找到一个对应id相等的数据，则保存该id的对象
+        for (var item of this.basket) {
+          if (item.id == id) {
+            tmp = item;
+          }
+        }
+        //将符合条件的菜品，加入数据，一会儿在购物车显示
+        this.ShopCartList.push(tmp);
+      }
     },
     empty() {},
     //去掉一个商品,当购物车里商品总数量等于0时，更改购物栏的样式
-    minCount(index) {
+    minCount(e) {
       this.Count--; //购物车数量减1
-      this.news[index].num--; //商品数组里数量-1
+      //存储this.basket数组里商品的id
+      var CartId;
+      //存储商品在this.basket数组里的索引
+      var d;
+      for (var i = 0; i < this.list.length; i++) {
+        if (this.list[i].id == e.target.dataset.lid) {
+          var rows = this.list[i];
+          //rows.goodsList[e.target.dataset.nid].num--;
+          //要删除的商品的id
+          CartId = rows.goodsList[e.target.dataset.nid].id;
+          //去this.basket数组里,去做减法运算
+          for (var j = 0; j < this.basket.length; j++) {
+            //如果 对比选择减去菜品的id和basket里的那个id对应,减去对应菜品的num--
+            if (this.basket[j].id == CartId) {
+              d = j;
+            }
+          }
+        }
+      }
+      console.log(CartId);
+      //点击删除的菜品id与数据里,那一项的id符合
+      //当num>0时,num-1
+      console.log(d);
+      console.log(this.basket[d]);
+      if (this.basket[d].num > 0) {
+        this.basket[d].num--;
+      }
+      //当num<=0时,删除掉指定id的商品
+      if (this.basket[d].num <= 0) {
+        this.basket.splice(this.basket[d], 1);
+      }
       //当购物车里的商品数量为0的时候，改变样式
       if (this.Count == 0) {
         //ShopCart 左侧内容 的图标
@@ -463,15 +561,9 @@ export default {
       } */
     },
     //添加商品 当商品数量大于0的时候,修改下方购物栏的样式
-    addCount(e) {
+    addCount(index) {
       this.Count++;
-      console.log(e.target.dataset.pid);
-      for (var i = 0; i < this.list.length; i++) {
-        if (this.list[i].id == e.target.dataset.pid) {
-          var rows = this.list[i];
-          rows.goodsList[this.Item].num++;
-        }
-      }
+      this.Item = index;
       //ShopCart 顶层div
       var div = document.getElementsByClassName("shopcart")[0];
       //ShopCart 左侧内容
@@ -493,105 +585,127 @@ export default {
     },
     //初始化菜单两栏的数据
     init() {
-      var controls = document.getElementById("segmentedControls");
-      var contents = document.getElementById("segmentedControlContents");
-      //默认选中第一个
-      controls.querySelector(".mui-control-item").classList.add("mui-active");
-      (function() {
-        var controlsElem = document.getElementById("segmentedControls");
-        var contentsElem = document.getElementById("segmentedControlContents");
-        var controlListElem = controlsElem.querySelectorAll(
-          ".mui-control-item"
-        );
-        var contentListElem = contentsElem.querySelectorAll(
-          ".mui-control-content"
-        );
-        var controlWrapperElem = controlsElem.parentNode;
-        var controlWrapperHeight = controlWrapperElem.offsetHeight;
-        var controlMaxScroll =
-          controlWrapperElem.scrollHeight - controlWrapperHeight; //左侧类别最大可滚动高度
-        var maxScroll = contentsElem.scrollHeight - contentsElem.offsetHeight; //右侧内容最大可滚动高度
-        var controlHeight = controlListElem[0].offsetHeight; //左侧类别每一项的高度
-        var controlTops = []; //存储control的scrollTop值
-        var contentTops = [0]; //存储content的scrollTop值
-        var length = contentListElem.length;
-        for (var i = 0; i < controlListElem.length; i++) {
-          controlTops.push(controlListElem[i].offsetTop + controlHeight);
-        }
-        for (var i = 1; i < length; i++) {
-          var offsetTop = contentListElem[i].offsetTop;
-          if (offsetTop + 100 >= maxScroll) {
-            var height = Math.max(offsetTop + 100 - maxScroll, 100);
-            var totalHeight = 0;
-            var heights = [];
-            for (var j = i; j < length; j++) {
-              var offsetHeight = contentListElem[j].offsetHeight;
-              totalHeight += offsetHeight;
-              heights.push(totalHeight);
-            }
-            for (var m = 0, len = heights.length; m < len; m++) {
-              contentTops.push(
-                parseInt(
-                  maxScroll - (height - (heights[m] / totalHeight) * height)
-                )
-              );
-            }
-            break;
-          } else {
-            contentTops.push(parseInt(offsetTop));
+      //配合watch实现 在获取到初始化数据后,在指令执行完毕后,确保是最新的dom,再执行原声dom操作
+      this.$nextTick(function() {
+        /*DOM更新了*/
+        //默认选中第一个
+        var controls = document.getElementById("segmentedControls");
+        var contents = document.getElementById("segmentedControlContents");
+        controls.querySelector(".mui-control-item").classList.add("mui-active");
+        (function() {
+          var controlsElem = document.getElementById("segmentedControls");
+          var contentsElem = document.getElementById(
+            "segmentedControlContents"
+          );
+          var controlListElem = controlsElem.querySelectorAll(
+            ".mui-control-item"
+          );
+          var contentListElem = contentsElem.querySelectorAll(
+            ".mui-control-content"
+          );
+          var controlWrapperElem = controlsElem.parentNode;
+          var controlWrapperHeight = controlWrapperElem.offsetHeight;
+          var controlMaxScroll =
+            controlWrapperElem.scrollHeight - controlWrapperHeight; //左侧类别最大可滚动高度
+          var maxScroll = contentsElem.scrollHeight - contentsElem.offsetHeight; //右侧内容最大可滚动高度
+          var controlHeight = controlListElem[0].offsetHeight; //左侧类别每一项的高度
+          var controlTops = []; //存储control的scrollTop值
+          var contentTops = [0]; //存储content的scrollTop值
+          var length = contentListElem.length;
+          for (var i = 0; i < controlListElem.length; i++) {
+            controlTops.push(controlListElem[i].offsetTop + controlHeight);
           }
-        }
-        contentsElem.addEventListener("scroll", function() {
-          var scrollTop = contentsElem.scrollTop;
-          for (var i = 0; i < length; i++) {
-            var offsetTop = contentTops[i];
-            var offset = Math.abs(offsetTop - scrollTop);
-            //						console.log("i:"+i+",scrollTop:"+scrollTop+",offsetTop:"+offsetTop+",offset:"+offset);
-            if (scrollTop < offsetTop) {
-              if (scrollTop >= maxScroll) {
-                onScroll(length - 1);
-              } else {
-                onScroll(i - 1);
+          for (var i = 1; i < length; i++) {
+            var offsetTop = contentListElem[i].offsetTop;
+            if (offsetTop + 100 >= maxScroll) {
+              var height = Math.max(offsetTop + 100 - maxScroll, 100);
+              var totalHeight = 0;
+              var heights = [];
+              for (var j = i; j < length; j++) {
+                var offsetHeight = contentListElem[j].offsetHeight;
+                totalHeight += offsetHeight;
+                heights.push(totalHeight);
+              }
+              for (var m = 0, len = heights.length; m < len; m++) {
+                contentTops.push(
+                  parseInt(
+                    maxScroll - (height - (heights[m] / totalHeight) * height)
+                  )
+                );
               }
               break;
-            } else if (offset < 20) {
-              onScroll(i);
-              break;
-            } else if (scrollTop >= maxScroll) {
-              onScroll(length - 1);
-              break;
+            } else {
+              contentTops.push(parseInt(offsetTop));
             }
           }
-        });
-        var lastIndex = 0;
-        //监听content滚动
-        var onScroll = function(index) {
-          if (lastIndex !== index) {
-          console.log(index)
-            var lastActiveElem = controlsElem.querySelector(".mui-active");
-            lastActiveElem && lastActiveElem.classList.remove("mui-active");
-            var currentElem = controlsElem.querySelector(
-              ".mui-control-item:nth-child(" + (index + 1) + ")"
-            );
-            currentElem.classList.add("mui-active");
-            //简单处理左侧分类滚动，要么滚动到底，要么滚动到顶
-            var controlScrollTop = controlWrapperElem.scrollTop;
-            if (controlScrollTop + controlWrapperHeight < controlTops[index]) {
-              controlWrapperElem.scrollTop = controlMaxScroll;
-            } else if (controlScrollTop > controlTops[index] - controlHeight) {
-              controlWrapperElem.scrollTop = 0;
+          contentsElem.addEventListener("scroll", function() {
+            var scrollTop = contentsElem.scrollTop;
+            for (var i = 0; i < length; i++) {
+              var offsetTop = contentTops[i];
+              var offset = Math.abs(offsetTop - scrollTop);
+              /* console.log(
+                "i:" +
+                  i +
+                  ",scrollTop:" +
+                  scrollTop +
+                  ",offsetTop:" +
+                  offsetTop +
+                  ",offset:" +
+                  offset
+              ); */
+              if (scrollTop < offsetTop) {
+                if (scrollTop >= maxScroll) {
+                  onScroll(length - 1);
+                } else {
+                  onScroll(i - 1);
+                }
+                break;
+              } else if (offset < 20) {
+                onScroll(i);
+                break;
+              } else if (scrollTop >= maxScroll) {
+                onScroll(length - 1);
+                break;
+              }
             }
-          }
-        };
-        //滚动到指定content
-        var scrollTo = function(index) {
-          contentsElem.scrollTop = contentTops[index];
-        };
-        mui(controlsElem).on("tap", ".mui-control-item", function(e) {
-          scrollTo(this.getAttribute("data-index"));
-          return false;
-        });
-      })();
+          });
+          var lastIndex = 0;
+          //监听content滚动
+          var onScroll = function(index) {
+            if (lastIndex !== index) {
+              lastIndex = index;
+              var lastActiveElem = controlsElem.querySelector(".mui-active");
+              lastActiveElem && lastActiveElem.classList.remove("mui-active");
+              var currentElem = controlsElem.querySelector(
+                ".mui-control-item:nth-child(" + (index + 1) + ")"
+              );
+              currentElem.classList.add("mui-active");
+              //简单处理左侧分类滚动，要么滚动到底，要么滚动到顶
+              var controlScrollTop = controlWrapperElem.scrollTop;
+              if (
+                controlScrollTop + controlWrapperHeight <
+                controlTops[index]
+              ) {
+                controlWrapperElem.scrollTop = controlMaxScroll;
+              } else if (
+                controlScrollTop >
+                controlTops[index] - controlHeight
+              ) {
+                controlWrapperElem.scrollTop = 0;
+              }
+            }
+          };
+          //滚动到指定content
+          var scrollTo = function(index) {
+            /* console.log(index); */
+            contentsElem.scrollTop = contentTops[index];
+          };
+          mui(controlsElem).on("tap", ".mui-control-item", function(e) {
+            scrollTo(this.getAttribute("data-index"));
+            return false;
+          });
+        })();
+      });
     },
     //点击弹出购物车的额内容
     pop() {
@@ -603,8 +717,23 @@ export default {
   created() {
     this.LoadMore();
   },
-  mounted: function() {
-    this.init();
+  mounted: function() {},
+  watch: {
+    list: {
+      //watch配合以下代码,可实现在数据改变后,指令执行后,执行dom操作
+      /* this.$nextTick(function(){}) */
+      handler: function(newVal, oldVal) {
+        this.init();
+      }
+    },
+    /* price: {
+      handler: function(newVal, oldVal) {}
+    } */
+  },
+  computed: {
+    fullName: function() {
+      return this.firstName + this.lastName;
+    }
   }
 };
 </script>
