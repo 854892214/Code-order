@@ -65,7 +65,7 @@
             </div>
             <div class="num" style="display: none;">{{Count}}</div>
           </div>
-          <div class="price">$0.00</div>
+          <div class="price">${{price.toFixed(2)}}</div>
           <div class="desc"></div>
         </div>
         <div class="content-right">
@@ -93,9 +93,18 @@
             <div class="inline-block">{{item.name}}</div>
             <div class="inline-block list-float-right">
               <span class="price">${{item.amount}}</span>
-              <div class="mui-icon mui-icon-minus cart-btn transform padding" @click="minCount(i)"></div>
+              <div
+                class="mui-icon mui-icon-minus cart-btn transform padding"
+                @click="ShopCartMin"
+                :data-lid="item.id"
+                :data-nid="i"
+              ></div>
               <span style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;">{{item.num}}</span>
-              <div class="mui-icon mui-icon-plus cart-btn padding" @click="addCount(i)"></div>
+              <div
+                class="mui-icon mui-icon-plus cart-btn padding"
+                @click="ShopCartAdd"
+                :data-pid="i"
+              ></div>
             </div>
           </li>
         </ul>
@@ -203,7 +212,6 @@ ul {
 .cart-btn {
   display: inline-block;
   line-height: 24px;
-  font-size: 1rem !important;
   color: #00a0dc;
   transition: all 0.4s linear;
 }
@@ -211,10 +219,9 @@ ul {
 .flex-cart {
   /* display: flex;
             flex-flow: row nowrap; */
-  margin: -1.1rem;
-  position: relative;
-  top: 5rem;
-  right: 1rem;
+  display: inline-flex;
+  font-size: 12px;
+  align-items: center;
 }
 
 .transform {
@@ -397,7 +404,6 @@ ul {
 export default {
   data() {
     return {
-      ary: ["主食", "鲜食", "奶茶"],
       //控制购物车的弹出
       popupVisible: false,
       //菜单页左侧的菜品
@@ -409,16 +415,40 @@ export default {
       ShopCartList: [],
       //用于保存菜单数组的索引
       Item: -1,
-      //存放选中的菜品
+      //存放所有选中的菜品,  后面会做过滤去重
       basket: [],
       //存放总价
       price: 0
     };
   },
   methods: {
+    ShopCartAdd(e) {
+      this.Count++;
+      //e.target.dataset.pid在ShopCartList数组的索引
+      let pid = e.target.dataset.pid;
+      this.ShopCartList[pid].num++;
+      this.basket.unshift(this.ShopCartList[pid]);
+    },
+    ShopCartMin(e) {
+      this.Count--;
+      let nid = e.target.dataset.nid;
+      console.log(this.ShopCartList[nid]);
+      this.ShopCartList[nid];
+      let status = 0;
+      for (var i = 0; i < this.basket.length; i++) {
+        if (
+          this.basket[i].id == this.ShopCartList[e.target.dataset.nid].id &&
+          status == 0
+        ) {
+          this.basket[i].num--;
+          this.basket.splice(i, 1);
+          status++;
+        }
+      }
+    },
     //按id过滤basket数组,
     basketFilter() {
-      //this.ShopCartList.push=[]
+      this.ShopCartList = [];
       var str = [];
       for (var i = 0; i < this.basket.length; i++) {
         //将所有选中菜品的id放进数据,用GoMore进行去重
@@ -437,6 +467,7 @@ export default {
         //将符合条件的菜品，加入数据，一会儿在购物车显示
         this.ShopCartList.push(tmp);
       }
+      console.log(this.ShopCartList);
     },
     //去重方法
     GoMore(array) {
@@ -459,10 +490,10 @@ export default {
     GetIndex(e) {
       for (var i = 0; i < this.list.length; i++) {
         if (this.list[i].id == e.target.dataset.pid) {
+          //rows  存储了每类商品的菜品
           var rows = this.list[i];
           rows.goodsList[this.Item].num++;
           this.basket.push(rows.goodsList[this.Item]);
-          console.log(this.basket);
         }
       }
     },
@@ -473,37 +504,18 @@ export default {
       var url = "https://api.hantepay.cn/mobi/store/goods/list?qr_num=bxdHG3Sk";
       this.axios.post(url, { headers: "application/json" }).then(result => {
         this.list = result.data.categoryList;
-        //console.log(this.list);
         //给每个菜系的菜品都强行赋值一个num属性,用于点菜
         for (var item of this.list) {
           for (var row of item.goodsList) {
             row.num = 0;
           }
         }
-        console.log(this.list);
       });
     },
     //控制购物车模态窗的显示  两层控制 这里控制开关  另外一处在购物车图标右上角的Count上
     toggleList() {
-      this.popupVisible = !this.popupVisible;
-      var str = [];
-      this.ShopCartList = [];
-      for (var i = 0; i < this.basket.length; i++) {
-        //将所有选中菜品的id放进数据,用GoMore进行去重
-        str.push(this.basket[i].id);
-      }
-      var length = this.GoMore(str);
-      for (var i = 0; i < length.length; i++) {
-        var id = length[i];
-        var tmp;
-        //拿到id进来，若找到一个对应id相等的数据，则保存该id的对象
-        for (var item of this.basket) {
-          if (item.id == id) {
-            tmp = item;
-          }
-        }
-        //将符合条件的菜品，加入数据，一会儿在购物车显示
-        this.ShopCartList.push(tmp);
+      if (this.Count > 0) {
+        this.popupVisible = !this.popupVisible;
       }
     },
     empty() {},
@@ -524,45 +536,26 @@ export default {
           for (var j = 0; j < this.basket.length; j++) {
             //如果 对比选择减去菜品的id和basket里的那个id对应,减去对应菜品的num--
             if (this.basket[j].id == CartId) {
+              //获取菜品的在basket的下标索引
               d = j;
             }
           }
         }
       }
-      console.log(CartId);
-      //点击删除的菜品id与数据里,那一项的id符合
-      //当num>0时,num-1
-      console.log(d);
-      console.log(this.basket[d]);
+      /* console.log(CartId);
+      //点击删除的菜品id与数据里,那一项的id符合 */
+      //当num<=0时,删除掉指定id的商品
       if (this.basket[d].num > 0) {
         this.basket[d].num--;
-      }
-      //当num<=0时,删除掉指定id的商品
-      if (this.basket[d].num <= 0) {
-        this.basket.splice(this.basket[d], 1);
+        this.basket.splice(d, 1); //从删除的下标位置,删除一个对象
+        //console.log(d,this.basket[d],2,this.basket)
       }
       //当购物车里的商品数量为0的时候，改变样式
-      if (this.Count == 0) {
-        //ShopCart 左侧内容 的图标
-        var i = document.getElementsByClassName("logo-wrapper")[0];
-        //ShopCart 左侧内容 的图标右上角的数字角标
-        var num = document.getElementsByClassName("num")[0];
-        //ShopCart 右侧内容
-        var contentRight = document.getElementsByClassName("content-right")[0];
-        //ShopCart 左侧内容
-        var contentleft = document.getElementsByClassName("content-left")[0];
-        contentleft.style.background = "#ccc";
-        num.style.display = "none";
-        i.style.background = "#989696";
-        contentRight.style.background = "#989696";
-      }
-      /* if (this.Count == 0) {
-        return;
-      } */
     },
     //添加商品 当商品数量大于0的时候,修改下方购物栏的样式
     addCount(index) {
       this.Count++;
+      //保存当前添加商品在所属类的索引
       this.Item = index;
       //ShopCart 顶层div
       var div = document.getElementsByClassName("shopcart")[0];
@@ -707,12 +700,28 @@ export default {
         })();
       });
     },
-    //点击弹出购物车的额内容
-    pop() {
-      this.popupVisible = !this.popupVisible;
-    },
     //点击去下单
-    orderConfirm() {}
+    //ShopCartList数组获取暂时放在这里
+    orderConfirm() {
+      if (this.Count > 0) {
+        //修改全局菜单列表  先做UI
+        //this.$store.commit("initMenuList", this.ShopCartList);
+        console.log(this.ShopCartList, this.price);
+        this.$store.commit("initMenuList", this.ShopCartList);
+        this.$router.push("/details");
+      }
+    },
+    //计算总价
+    calcTocalPrice(index) {
+      //console.log(index, this.Item, this.basket, this.basket.length);
+      var sum = 0;
+      if (this.ShopCartList.length > 0) {
+        for (var i = 0; i < this.ShopCartList.length; i++) {
+          sum += this.basket[i].num * this.basket[i].amount;
+        }
+        this.price = sum;
+      }
+    }
   },
   created() {
     this.LoadMore();
@@ -726,14 +735,53 @@ export default {
         this.init();
       }
     },
-    /* price: {
-      handler: function(newVal, oldVal) {}
-    } */
+    //basket数组变化,就计算price
+    basket: {
+      handler: function(newVal, oldVal) {
+        //计算price
+        let sum = 0;
+        for (var i = 0; i < this.list.length; i++) {
+          var list = this.list[i];
+          for (var j = 0; j < list.goodsList.length; j++) {
+            var gooditem = list.goodsList[j];
+            sum += gooditem.num * gooditem.amount;
+          }
+        }
+        this.price = sum;
+
+        //basket数组一旦变化,就对数组去重后赋值给ShopCartList数组,用于显示购物车弹窗
+        this.basketFilter();
+      }
+    },
+    //当Count值变化是,根据条件改变显示样式
+    Count: {
+      handler: function() {
+        //当购物车里的商品数量为0的时候，改变样式
+        if (this.Count == 0) {
+          //关闭弹窗
+          this.popupVisible = false;
+          //ShopCart 左侧内容 的图标
+          var i = document.getElementsByClassName("logo-wrapper")[0];
+          //ShopCart 左侧内容 的图标右上角的数字角标
+          var num = document.getElementsByClassName("num")[0];
+          //ShopCart 右侧内容
+          var contentRight = document.getElementsByClassName(
+            "content-right"
+          )[0];
+          //ShopCart 左侧内容
+          var contentleft = document.getElementsByClassName("content-left")[0];
+          contentleft.style.background = "#ccc";
+          num.style.display = "none";
+          i.style.background = "#989696";
+          contentRight.style.background = "#989696";
+        }
+      }
+    }
   },
   computed: {
-    fullName: function() {
+    /* fullName: function() {
       return this.firstName + this.lastName;
-    }
+    } */
   }
 };
 </script>

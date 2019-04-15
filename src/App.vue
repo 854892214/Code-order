@@ -6,10 +6,12 @@
       <span class="float-right">堂食</span>
     </header>
     <!-- 占位符用来显示其它的组件-->
+    <transition name="fade" mode="out-in">
     <router-view></router-view>
+    </transition>
   </div>
 </template>
-<style>
+<style scoped>
 .float-right {
   float: right;
   line-height: 2.8rem;
@@ -33,6 +35,13 @@ export default {
       }
       if (this.$route.path == "/order") {
         this.val = "在线点单";
+        document.getElementsByClassName("float-right")[0].className =
+          "float-right";
+      }
+      if (this.$route.path == "/details") {
+        this.val = "账单详情";
+        document.getElementsByClassName("float-right")[0].className +=
+          " display-none";
       }
       //alert(1)
     }

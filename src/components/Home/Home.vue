@@ -51,7 +51,8 @@ export default {
 .menu {
   display: flex;
   list-style: none;
-  margin-left: 2rem;
+  justify-content: center;
+  padding: 1rem 0 0 0;
   margin-bottom: 0;
 }
 .menu-item {
