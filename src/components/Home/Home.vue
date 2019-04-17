@@ -47,20 +47,25 @@ export default {
 <style>
 .list {
   text-align: center;
+  text-align: center;
+  position: fixed;
+  bottom: 0%;
+  width: 100%;
 }
 .menu {
   display: flex;
   list-style: none;
   justify-content: center;
-  padding: 1rem 0 0 0;
   margin-bottom: 0;
 }
 .menu-item {
   padding: 0.3rem;
+  font-size: 1rem;
 }
 .famliy {
-  font-size: 30px;
+  font-size: 1.4rem;
   color: red;
   margin-top: 0.6rem;
+  padding-bottom: 0.6rem;
 }
 </style>

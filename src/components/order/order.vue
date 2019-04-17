@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mui-content mui-row mui-fullscreen" style="top:45px">
-      <div class="mui-col-xs-3">
+      <div class="mui-col-xs-3 bg-white">
         <div
           id="segmentedControls"
           class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-vertical"
@@ -20,7 +20,7 @@
         class="mui-col-xs-9"
         style="border-left: 1px solid #c8c7cc;"
       >
-        <div :id="'content'+(i+1)" class="mui-control-content" v-for="(item,i) in list" :key="i">
+        <div :id="'content'+(u+1)" class="mui-control-content" v-for="(item,u) in list" :key="u">
           <div class="goods-title">{{item.name}}</div>
           <div class="flex" v-for="(n ,i) in item.goodsList" :key="i">
             <div class="icon">
@@ -31,28 +31,34 @@
                 height="57"
               >
             </div>
-            <div>
-              <h4 class="title">{{n.name}}</h4>
-              <h4 class="type">咸粥</h4>
-              <h4 class="type">月销{{n.quantity}}份 好评率100%</h4>
-              <h4 class="price">{{n.amount}}</h4>
-            </div>
             <div class="flex-cart" @click="GetIndex">
-              <div
-                class="mui-icon mui-icon-minus cart-btn transform"
-                v-if="n.num>0"
-                @click="minCount"
-                :data-lid="item.id"
-                :data-nid="i"
-              ></div>
-              <span
-                style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
-                v-if="n.num>0"
-              >{{n.num}}</span>
-              <div class="mui-icon mui-icon-plus cart-btn" @click="addCount(i)" :data-pid="item.id"></div>
+              <nav>
+                <h4 class="title">{{n.name}}</h4>
+                <h4 class="price money">{{n.amount}}</h4>
+              </nav>
+              <!-- -->
+              <nav v-if="n.hasOwnProperty('specificationInfoList')==false" class="nav-btn">
+                <img
+                  src="../../img/del.png"
+                  :data-nid="i"
+                  :data-lid="item.id"
+                  @click="minCount"
+                  v-if="n.num>0"
+                  class="transform cart-btn"
+                >
+                <span
+                  style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
+                  v-if="n.num>0"
+                >{{n.num}}</span>
+                <img src="../../img/add.png" id="FlyBill" :data-pid="item.id" @click="addCount(i)">
+              </nav>
+              <div v-if="n.hasOwnProperty('specificationInfoList')" class="spec-box">
+                <div class="spec" @click="specpopup" :data-lid="u" :data-nid="i">选规格</div>
+              </div>
             </div>
           </div>
         </div>
+        <div style="height:2.5rem"></div>
       </div>
     </div>
     <div class="shopcart disabled">
@@ -61,7 +67,7 @@
         <div class="content-left" @click="toggleList()">
           <div class="logo-wrapper">
             <div class="logo" style="line-height: 2.5rem;">
-              <i class="layui-icon layui-icon-cart" style="font-size:25px;"></i>
+              <i class="layui-icon layui-icon-cart d-target" style="font-size:25px;"></i>
             </div>
             <div class="num" style="display: none;">{{Count}}</div>
           </div>
@@ -81,7 +87,7 @@
       style="width:100%;z-index:2019;margin-bottom:2.8rem;border-top-left-radius: 12px;border-top-right-radius: 12px;"
     >
       <!--购物车内容-->
-      <div class="flex Space-between">
+      <div class="flex Space-between ShopCart-height">
         <div>购物车</div>
         <div class="mui-icon mui-icon-trash">
           <span class="clear price" @click="empty()">清空</span>
@@ -110,15 +116,226 @@
         </ul>
       </div>
     </mt-popup>
+    <mt-popup v-model="spec" popup-transition="popup-fade" class="spec-pop">
+      <div class="spec-title">
+        <div>&nbsp;</div>
+        <div class="spec-title-name">{{specItem[0].name}}</div>
+        <span class="mui-icon mui-icon-closeempty spec-title-icon" @click="CloseSpec"></span>
+      </div>
+      <div class="spec-type">
+        <span class="spec-type-font">酸辣味:</span>
+      </div>
+      <div class="spec-select">
+        <div class="spec-item">
+          <span class="spec-item-font">酸辣味</span>
+        </div>
+        <div class="spec-item spec-item-active">
+          <span class="spec-item-font">火锅味</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-item-font">香辣味</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-item-font">天蝎味</span>
+        </div>
+      </div>
+      <div>&nbsp;</div>
+
+      <div class="spec-bottom">
+        <div class="spec-bottom-left">
+          <span style="color:red">¥</span>
+          <span class="spec-price">12</span>
+          <span class="spec-bottom-font">(酸辣味)</span>
+        </div>
+        <div class="spec-bottom-right" @click="addSpecCount">
+          <span class="spec-bottom-icon">+</span>
+          <span class="spec-bottom-fonts">加入购物车</span>
+        </div>
+      </div>
+    </mt-popup>
   </div>
 </template>
-<style>
+
+<style scoped>
+.nav-btn {
+  position: relative;
+  top: 1rem;
+}
+.ShopCart-height {
+  height: 1.5rem !important;
+  padding: 1rem !important;
+}
+.bg-white {
+  background: #fff;
+}
+.money {
+  position: relative;
+  top: 0.2rem;
+}
+.spec-item-active {
+  background: #3bc5e6;
+  color: white !important;
+}
+.outer {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  transition: all 0.35s linear;
+}
+
+.outer .inner {
+  width: 30px;
+  height: 30px;
+  background: red;
+  border-radius: 50%;
+  transition: all 0.35s cubic-bezier(0.39, -0.4, 0.83, 0.23);
+  position: absolute;
+}
+
+.outer.point-pre {
+  display: none;
+}
+
+.spec-bottom-fonts {
+  position: relative;
+  left: 0.3rem;
+}
+
+.spec-title-name {
+  position: relative;
+  left: 1.3rem;
+}
+
+.spec-title-icon {
+  line-height: inherit !important;
+  font-size: 40px !important;
+}
+
+.spec-item-font {
+  font-size: 15px;
+}
+
+.spec-bottom-icon {
+  font-size: 28px;
+  position: relative;
+  top: 0.2rem;
+  right: 0.3rem;
+}
+
+.spec-type-font {
+  font-size: 1rem;
+  padding: 5px;
+  padding-left: 0;
+}
+
+.spec-bottom-right {
+  position: relative;
+  right: 1rem;
+  color: black;
+  background: #efc259;
+  height: 2.2rem;
+  border-radius: 15px;
+  width: 9rem;
+  line-height: 1.8rem;
+  text-align: center;
+}
+
+.spec-bottom-left {
+  position: relative;
+  left: 1rem;
+  line-height: 2.1rem;
+}
+
+.spec-bottom-font {
+  font-size: 1rem;
+  padding: 10px;
+}
+
+.spec-price {
+  font-size: 1.6rem;
+  color: red;
+}
+
+.spec-bottom {
+  position: relative;
+  bottom: 0.6rem;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
+.spec-item {
+  border: 1px solid #3bc5e6;
+  width: 21.2%;
+  height: 38px;
+  line-height: 38px;
+  font-size: 16px;
+  text-align: center;
+  color: #3bc5e6;
+  margin: 10px;
+  margin-right: 0;
+}
+
+.spec-select {
+  display: flex;
+  display: -webkit-box;
+  flex-flow: row wrap;
+  margin: 0 0 0.8rem 0;
+  justify-content: space-around;
+}
+
+.spec-type {
+  position: relative;
+  left: 0.8rem;
+}
+
+.spec-title {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  height: 3rem;
+  font-size: 1.2rem;
+  line-height: 3rem;
+}
+
+.spec-pop {
+  width: 90%;
+  height: 37%;
+  border-radius: 10px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-around;
+}
+
+.spec-box {
+  display: inline-flex;
+  font-size: 12px;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.spec {
+  width: 70px;
+  text-align: center;
+  background: #9cd6e4;
+  border-radius: 14px;
+  height: 33px;
+  font-size: 15px;
+  line-height: 33px;
+  padding: 0px;
+}
+
 .mui-active {
   border-left: 2px solid red !important;
 }
+
 .mui-control-item {
   border-bottom: 0px !important;
 }
+
 .food {
   position: relative;
   padding: 12px 0;
@@ -127,19 +344,24 @@
   height: 48px;
   border-bottom: 1px solid rgba(7, 17, 27, 0.1);
 }
+
 .padding {
   padding: 0 6px;
 }
+
 .list-float-right {
   float: right;
 }
+
 .inline-block {
   display: inline-block;
 }
+
 ul {
   list-style: none;
   padding: 0;
 }
+
 .list-content {
   padding: 0 18px;
   padding-bottom: 25px;
@@ -148,6 +370,7 @@ ul {
   overflow: hidden;
   overflow-y: auto;
 }
+
 .goods-title {
   padding-left: 14px;
   height: 26px;
@@ -157,16 +380,18 @@ ul {
   border-left: 2px solid #ed5b5b;
   background-color: #f3f0f0;
 }
+
 .clear {
   font-size: 1rem;
 }
+
 .Space-between {
   margin: 1.1rem 0 0 0 !important;
   justify-content: space-between;
   height: 40px;
   line-height: 40px;
   padding: 0 18px;
-  background: #f3f5f7;
+  background: #f3f5f7 !important;
   border-bottom: 1px solid rgba(7, 17, 27, 0.1);
   display: flex;
   align-items: center;
@@ -176,18 +401,34 @@ ul {
   -webkit-box-align: center;
   -webkit-align-items: center;
 }
-.flex {
-  margin: 13px;
-  display: flex;
-  flex-flow: row nowrap;
-}
 
+.flex {
+  height: 5.6rem;
+  padding: 0.8rem;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  border-bottom: 0.5px solid #ccc;
+  align-items: center;
+  background: #fff;
+}
 .title {
   margin: 2px 0 8px;
   line-height: 14px;
   font-size: 14px;
   color: #07111b;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  width: 60px;
+  height: 28px;
 }
 
 .type {
@@ -210,18 +451,26 @@ ul {
 }
 
 .cart-btn {
-  display: inline-block;
-  line-height: 24px;
-  color: #00a0dc;
-  transition: all 0.4s linear;
+  width: 30%;
 }
 
 .flex-cart {
-  /* display: flex;
-            flex-flow: row nowrap; */
-  display: inline-flex;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
   font-size: 12px;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  width: 220px;
+  height: 5.6rem;
+  padding: 0.8rem;
+  padding-left: 0;
+  justify-content: space-between;
 }
 
 .transform {
@@ -247,10 +496,12 @@ ul {
     opacity: 1;
   }
 }
+
 .shopcart.disabled .content {
   color: #ffffff;
   background: #cccccc;
 }
+
 .shopcart .content .content-left .logo-wrapper .num {
   position: absolute;
   top: 0;
@@ -268,27 +519,33 @@ ul {
   min-width: 20px;
   min-height: 20px;
 }
+
 .activeIcon {
   background: white;
   color: red;
 }
+
 .shopcart .shopcart-list.mui-active {
   transform: translate3d(0, -100%, 0);
 }
+
 .shopcart .content .content-right .pay {
   line-height: 48px;
   text-align: center;
   font-size: 14px;
   font-weight: 700;
 }
+
 .shopcart .content .content-right {
   -ms-flex: 0 0 105px;
   flex: 0 0 105px;
   width: 105px;
 }
+
 .shopcart.disabled .content .content-right {
   background: #989696;
 }
+
 .shopcart .content .content-left .desc {
   display: inline-block;
   vertical-align: top;
@@ -296,6 +553,7 @@ ul {
   line-height: 24px;
   font-size: 12px;
 }
+
 .shopcart .content .content-left .price {
   display: inline-block;
   vertical-align: top;
@@ -306,12 +564,15 @@ ul {
   font-size: 18px;
   font-weight: 700;
 }
+
 .shopcart.disabled .content .content-left .price {
   color: #3e3838;
 }
+
 .icon-shopping_cart:before {
   content: "\E907";
 }
+
 [class^="icon-"],
 [class*=" icon-"] {
   font-family: "sell-icon" !important;
@@ -324,16 +585,19 @@ ul {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 .shopcart .content .content-left .logo-wrapper .logo .icon-shopping_cart {
   line-height: 44px;
   font-size: 30px;
   color: #ffffff;
 }
+
 .shopcart .content .content-left .logo-wrapper .logo {
   width: 100%;
   height: 100%;
   border-radius: 50%;
 }
+
 .shopcart .content .content-left .logo-wrapper {
   display: inline-block;
   position: relative;
@@ -347,22 +611,27 @@ ul {
   vertical-align: top;
   text-align: center;
 }
+
 .shopcart.disabled .content .content-left .logo-wrapper {
   background: #989696;
 }
+
 .shopcart .content .content-left {
   -ms-flex-positive: 1;
   flex-grow: 1;
   font-size: 0;
 }
+
 .shopcart .content {
   display: -ms-flexbox;
   display: flex;
   height: 100%;
 }
+
 .shopcart {
   position: fixed;
-  z-index: 9999; /*低于2005会出现被遮罩层遮住的问题*/
+  z-index: 9999;
+  /*低于2005会出现被遮罩层遮住的问题*/
   left: 0;
   bottom: 0;
   width: 100%;
@@ -370,6 +639,7 @@ ul {
   background: #ccc;
   box-shadow: 0 -2px 3px -1px #cccccc;
 }
+
 .mui-row.mui-fullscreen > [class*="mui-col-"] {
   height: 100%;
 }
@@ -393,17 +663,22 @@ ul {
   .mui-control-item.mui-active {
   background-color: #fff;
 }
+
 .Set-Width {
   width: 100% !important;
 }
+
 .Set-display {
   display: block !important;
 }
 </style>
+
 <script>
 export default {
   data() {
     return {
+      //选择菜品规格的弹窗控制开关
+      spec: false,
       //控制购物车的弹出
       popupVisible: false,
       //菜单页左侧的菜品
@@ -418,10 +693,23 @@ export default {
       //存放所有选中的菜品,  后面会做过滤去重
       basket: [],
       //存放总价
-      price: 0
+      price: 0,
+      //存放弹窗选中商品的总价
+      SpecPrice: 0,
+      //存放弹窗选中的商品
+      SpecList: [],
+      //临时保存一个选规格商品的数据
+      specItem: [(name = "")]
     };
   },
   methods: {
+    addSpecCount() {
+      console.log(2);
+    },
+    CloseSpec() {
+      this.spec = !this.spec;
+    },
+    //购物车添加按钮
     ShopCartAdd(e) {
       this.Count++;
       //e.target.dataset.pid在ShopCartList数组的索引
@@ -429,10 +717,10 @@ export default {
       this.ShopCartList[pid].num++;
       this.basket.unshift(this.ShopCartList[pid]);
     },
+    //购物车删除按钮
     ShopCartMin(e) {
       this.Count--;
       let nid = e.target.dataset.nid;
-      console.log(this.ShopCartList[nid]);
       this.ShopCartList[nid];
       let status = 0;
       for (var i = 0; i < this.basket.length; i++) {
@@ -467,7 +755,6 @@ export default {
         //将符合条件的菜品，加入数据，一会儿在购物车显示
         this.ShopCartList.push(tmp);
       }
-      console.log(this.ShopCartList);
     },
     //去重方法
     GoMore(array) {
@@ -502,15 +789,22 @@ export default {
       var rows = [];
       var items = {};
       var url = "https://api.hantepay.cn/mobi/store/goods/list?qr_num=bxdHG3Sk";
-      this.axios.post(url, { headers: "application/json" }).then(result => {
-        this.list = result.data.categoryList;
-        //给每个菜系的菜品都强行赋值一个num属性,用于点菜
-        for (var item of this.list) {
-          for (var row of item.goodsList) {
-            row.num = 0;
+      this.axios
+        .post(url, {
+          headers: "application/json"
+        })
+        .then(result => {
+          this.list = result.data.categoryList;
+          //给每个菜系的菜品都强行赋值一个num属性,用于点菜
+          for (var item of this.list) {
+            item.goodsList[0].specificationInfoList = true;
+            for (var row of item.goodsList) {
+              row.num = 0;
+            }
+            console.log(item.goodsList.length);
           }
-        }
-      });
+          console.log(this.list);
+        });
     },
     //控制购物车模态窗的显示  两层控制 这里控制开关  另外一处在购物车图标右上角的Count上
     toggleList() {
@@ -518,7 +812,16 @@ export default {
         this.popupVisible = !this.popupVisible;
       }
     },
-    empty() {},
+    //点击选规格
+    specpopup(e) {
+      this.spec = !this.spec;
+      this.specItem = [];
+      var lid = e.target.dataset.lid;
+      var nid = e.target.dataset.nid;
+      var item = this.list[lid].goodsList[nid];
+      this.specItem.push(item);
+      console.log(this.specItem[0]);
+    },
     //去掉一个商品,当购物车里商品总数量等于0时，更改购物栏的样式
     minCount(e) {
       this.Count--; //购物车数量减1
@@ -543,7 +846,7 @@ export default {
         }
       }
       /* console.log(CartId);
-      //点击删除的菜品id与数据里,那一项的id符合 */
+            //点击删除的菜品id与数据里,那一项的id符合 */
       //当num<=0时,删除掉指定id的商品
       if (this.basket[d].num > 0) {
         this.basket[d].num--;
@@ -637,15 +940,15 @@ export default {
               var offsetTop = contentTops[i];
               var offset = Math.abs(offsetTop - scrollTop);
               /* console.log(
-                "i:" +
-                  i +
-                  ",scrollTop:" +
-                  scrollTop +
-                  ",offsetTop:" +
-                  offsetTop +
-                  ",offset:" +
-                  offset
-              ); */
+                              "i:" +
+                                i +
+                                ",scrollTop:" +
+                                scrollTop +
+                                ",offsetTop:" +
+                                offsetTop +
+                                ",offset:" +
+                                offset
+                            ); */
               if (scrollTop < offsetTop) {
                 if (scrollTop >= maxScroll) {
                   onScroll(length - 1);
@@ -705,10 +1008,10 @@ export default {
     orderConfirm() {
       if (this.Count > 0) {
         //修改全局菜单列表  先做UI
-        //this.$store.commit("initMenuList", this.ShopCartList);
         console.log(this.ShopCartList, this.price);
         this.$store.commit("initMenuList", this.ShopCartList);
-        this.$router.push("/details");
+        this.$store.commit("updatePath", this.$route.path);
+        this.$router.push("/transition");
       }
     },
     //计算总价
@@ -780,9 +1083,8 @@ export default {
   },
   computed: {
     /* fullName: function() {
-      return this.firstName + this.lastName;
-    } */
+          return this.firstName + this.lastName;
+        } */
   }
 };
 </script>
-

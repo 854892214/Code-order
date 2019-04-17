@@ -92,6 +92,9 @@ export default {
           duration: 3000
         });
       }, 3000);
+      console.log(this.$route.path,1)
+      /* this.$store.commit("updatePath", this.$route.path);
+      this.$router.push('/transition') */
     }
   }
 };

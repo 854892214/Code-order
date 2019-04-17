@@ -1,7 +1,8 @@
 <template>
   <div class="mui-pages">
     <div id="billDetail" class="mui-page mui-page-center">
-      <div class="mui-page-content" id="aaaa">
+      <div class="mui-page-content">
+        <!-- 到店自取 -->
         <div class="store-info" style="margin-top: 10px;">
           <div class="store-info-name">到店自取</div>
           <ul class="mui-table-view">
@@ -19,8 +20,46 @@
             </li>
           </ul>
         </div>
+        <!-- 没有下单显示的页面 -->
+        <div class="order-cart-content" v-if="isorder!=true">
+          <div class="info">
+            <div class="detail_title">
+              <span>订单详情</span>
+              <div class="r mui-action-back">
+                <span>继续点餐</span>
+              </div>
+            </div>
+            <ul class="orderGoodsDetail cart-group">
+              <li>
+                <div class="cart-group-name">
+                  <p>馒头</p>
+                </div>
+                <span class="cart-group-count">x1</span>
+                <span class="cart-group-amount-warp">$10.00</span>
+              </li>
+            </ul>
+            <div class="cart-total">
+              <div class="cart-total-item">
+                <div class="text">小计</div>
+                <div class="value cart-total-amount">$10.00</div>
+              </div>
+            </div>
+          </div>
 
-        <div class="bill-detail-content">
+          <div class="customer mui-input-group">
+            <div class="title">客户信息</div>
+            <div class="mui-input-row">
+              <label>姓名</label>
+              <input type="text" id="Js_customer_name" placeholder="请输入姓名">
+            </div>
+            <div class="mui-input-row">
+              <label>电话</label>
+              <input type="tel" id="Js_customer_mobile" placeholder="请输入电话">
+            </div>
+          </div>
+        </div>
+        <!-- 下单后显示的页面 -->
+        <div class="bill-detail-content" v-if="isorder==true">
           <div class="title1">您需要先完成支付，商家才能看到您的订单</div>
 
           <div class="bill-detail-goods-info">
@@ -40,28 +79,29 @@
               <!--          				</li> -->
             </ul>
             <div class="bill-order-goods-list">
-              <ul class="cart-group">
-                <li>
+              <ul class="cart-group" v-if="ShopCartList[0].name!=null">
+                <li v-for="(item,i) of ShopCartList" :key="i">
                   <div class="cart-group-name">
-                    <p>米饭</p>
+                    <p>{{item.name}}</p>
                   </div>
-                  <span class="cart-group-count">x1</span>
-                  <span class="cart-group-amount-warp">$1.00</span>
+                  <span class="cart-group-count">x{{item.num}}</span>
+                  <span class="cart-group-amount-warp">${{(item.amount*item.num).toFixed(2)||0.00}}</span>
                 </li>
               </ul>
             </div>
           </div>
           <div class="order-bill-detail-total">
             <p>小计</p>
-            <p class="order-total">$1.00</p>
+            <p class="order-total">${{price.toFixed(2)||0.00}}</p>
           </div>
           <div class="order-bill-detail-total">
             <p>税</p>
             <p class="tax">$0.05</p>
           </div>
         </div>
-        <div class="bill-info">
-          <div class="title">
+        <!-- 订单信息 -->
+        <div class="bill-info" v-if="isorder==true">
+          <div class="title order-info">
             订单信息
             <span
               id="clearOrder"
@@ -87,45 +127,142 @@
             </div>
           </div>
         </div>
+        <!-- 底部悬浮按钮 -->
         <div class="order-bill-btn">
-          <div class="jiacai">加单</div>
+          <div class="jiacai" @click="rollback">加单</div>
           <div class="maidan" @click="jump">买单</div>
         </div>
       </div>
     </div>
   </div>
 </template>
-<style scoped>
-.mui-views,
-.mui-view,
-.mui-pages,
-.mui-page,
-.mui-page-content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+<style>
+.customer .mui-input-row label~input {
+    width: 80%;
+    font-size: 14px;
+}
+.customer .mui-input-row label {
+    font-size: 14px;
+    width: 20%;
+}
+.customer .mui-input-row label~input {
+    width: 80%;
+    font-size: 14px;
+}
+.customer .mui-input-row label {
+    font-size: 14px;
+    width: 20%;
+}
+.customer .title {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+  color: #7b7a7a;
+}
+.customer {
+  margin-top: 10px;
+}
+.order-cart-content .info .cart-total .cart-total-item .value {
+  -webkit-flex: 3;
+  flex: 3;
+  text-align: right;
+  font-weight: 600;
+}
+.order-cart-content .info .cart-total .cart-total-item .text {
+  -webkit-flex: 7;
+  flex: 7;
+  text-align: right;
+  color: #565353;
+}
+.order-cart-content .info .cart-total {
+  text-align: right;
+  padding: 10px 0px;
+}
+.order-cart-content .info .cart-total .cart-total-item {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
   width: 100%;
-  height: 100%;
-  background-color: #ffffff;
+  font-size: 14px;
 }
-.mui-pages {
-  top: 46px;
-  height: auto;
+.order-cart-content .info .cart-total {
+  text-align: right;
+  padding: 10px 0px;
 }
-.mui-pages .mui-page {
-  display: block;
+.cart-group li .cart-group-amount-warp {
+  font-size: 14px;
+  -webkit-flex: 3;
+  flex: 3;
+  text-align: right;
 }
-.mui-page {
-  display: none;
+.cart-group li .cart-group-count {
+  -webkit-flex: 1;
+  flex: 1;
+  text-align: right;
+  font-size: 14px;
+}
+.cart-group li .cart-group-name p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+}
+.cart-group li .cart-group-name {
+  overflow: hidden;
+  -webkit-flex: 7;
+  flex: 7;
+}
+.cart-group li {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  width: 100%;
+}
+.order-cart-content .info .orderGoodsDetail li {
+  border-bottom: 1px dotted #eee;
+  padding: 15px 0px;
+}
+ul {
+  list-style: none;
+}
+.order-cart-content .info ul.orderGoodsDetail,
+.order-cart-content .info ul.orderGoodsDetail p {
+  color: #333;
+}
+.order-cart-content .info .detail_title div span {
+  border: 1px solid #ed5b5b;
+  padding: 5px 10px;
+  border-radius: 20px;
+  color: #ed5b5b;
+}
+.r {
+  float: right;
+}
+.order-cart-content .info .detail_title {
+  border-bottom: 1px solid #cccccc;
+  font-size: 14px;
+  color: #7b7a7a;
+  padding: 0px 0px 10px 0px;
+}
+.order-cart-content {
+  position: relative;
+  padding-bottom: 10px;
+}
+.order-cart-content .info {
+  background: #fff;
+  padding: 10px;
+}
+.order-info {
+  width: 100%;
+  height: 2rem;
+  padding: 10px;
 }
 #billDetail .mui-page-content {
   background-color: #eee;
-}
-.mui-page-content {
-  overflow: hidden;
-  overflow-y: auto;
 }
 #billDetail .mui-page-content {
   background-color: #eee;
@@ -138,50 +275,6 @@
   padding: 10px;
   font-size: 14px;
   color: #7b7a7a;
-}
-.mui-table-view {
-  position: relative;
-  margin-top: 0;
-  margin-bottom: 0;
-  padding-left: 0;
-  list-style: none;
-  background-color: #fff;
-}
-.mui-ios .mui-table-view-cell {
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-}
-.mui-table-view .mui-media,
-.mui-table-view .mui-media-body {
-  overflow: hidden;
-}
-.mui-table-view-cell {
-  position: relative;
-  overflow: hidden;
-  padding: 11px 15px;
-  -webkit-touch-callout: none;
-}
-.mui-table-view:before {
-  position: absolute;
-  right: 0;
-  left: 0;
-  height: 1px;
-  content: "";
-  -webkit-transform: scaleY(0.5);
-  transform: scaleY(0.5);
-  background-color: #c8c7cc;
-  top: -1px;
-}
-.mui-table-view:after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  content: "";
-  -webkit-transform: scaleY(0.5);
-  transform: scaleY(0.5);
-  background-color: #c8c7cc;
 }
 #billDetail .bill-detail-content {
   background: #fff;
@@ -358,12 +451,13 @@ ul {
 }
 </style>
 <script>
-import { MessageBox } from "mint-ui";
-import { Indicator } from "mint-ui";
+import { MessageBox, Indicator } from "mint-ui";
 export default {
   data() {
     return {
-      ShopCartList: this.$store.getters.GetShopCartList
+      ShopCartList: this.$store.getters.GetShopCartList,
+      price: 0,
+      isorder: true
     };
   },
   computed: {
@@ -374,7 +468,8 @@ export default {
   },
   methods: {
     jump() {
-      this.$router.push("/bill");
+      this.$store.commit("updatePath", this.$route.path);
+      this.$router.push("/transition");
     },
     Cancel() {
       MessageBox.confirm("确定执行此操作?").then(action => {
@@ -394,11 +489,23 @@ export default {
       });
     },
     init() {
-      console.log(this.ShopCartList, 222);
+      console.log(this.ShopCartList.length, 222);
+      console.log(this.ShopCartList[0].name != null);
+    },
+    rollback() {
+      this.$router.push("/order");
+    },
+    CputeSum() {
+      var prices = 0;
+      for (var item of this.ShopCartList) {
+        prices += item.amount * item.num;
+      }
+      this.price = prices;
     }
   },
   created() {
     this.init();
+    this.CputeSum();
   }
 };
 </script>

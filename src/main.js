@@ -7,7 +7,7 @@ import "mint-ui/lib/style.min.css"
 //1:引入mui 样式文件
 import "./lib/mui/css/mui.min.css"
 import "./lib/mui/css/icons-extra.css"
-import { Popup, MessageBox,Spinner } from 'mint-ui';
+import { Popup, MessageBox, Spinner } from 'mint-ui';
 //阻止启动生产消息
 Vue.config.productionTip = false
 Vue.use(Vuex)
@@ -16,7 +16,9 @@ var store = new Vuex.Store({
     //点菜页面的ShopCartList
     menuList: sessionStorage.getItem('menuList'),
     //购物车的商品数
-    CartCount: sessionStorage.getItem('Count') || 0
+    CartCount: sessionStorage.getItem('Count') || 0,
+    //存储当前组件的路由
+    NowPath: sessionStorage.getItem('NowPath') || null
   },
   mutations: {
     initMenuList(state, list) {
@@ -26,12 +28,19 @@ var store = new Vuex.Store({
     updateCount(state, count) {
       state.CartCount = count
       sessionStorage.setItem("CartCount", count)
+    },
+    updatePath(state, NowPath) {
+      state.NowPath = NowPath
+      sessionStorage.setItem("NowPath", NowPath)
     }
   },
   getters: {
     GetShopCartList: function (state) {
       return state.menuList
-    }
+    },
+    GetPath: function (state) {
+      return state.NowPath
+    },
   }
 })
 import qs from "qs"
