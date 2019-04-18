@@ -3,7 +3,7 @@
     <div id="billDetail" class="mui-page mui-page-center">
       <div class="mui-page-content">
         <!-- 到店自取 -->
-        <div class="store-info" style="margin-top: 10px;">
+        <div class="store-info" style="margin-top: 3rem;">
           <div class="store-info-name">到店自取</div>
           <ul class="mui-table-view">
             <li class="mui-table-view-cell mui-media">
@@ -30,18 +30,18 @@
               </div>
             </div>
             <ul class="orderGoodsDetail cart-group">
-              <li>
+              <li v-for="(item,i) in ShopCartList" :key="i">
                 <div class="cart-group-name">
-                  <p>馒头</p>
+                  <p>{{item.name}}</p>
                 </div>
-                <span class="cart-group-count">x1</span>
-                <span class="cart-group-amount-warp">$10.00</span>
+                <span class="cart-group-count">x{{item.num}}</span>
+                <span class="cart-group-amount-warp">${{item.num*item.amount}}</span>
               </li>
             </ul>
             <div class="cart-total">
               <div class="cart-total-item">
                 <div class="text">小计</div>
-                <div class="value cart-total-amount">$10.00</div>
+                <div class="value cart-total-amount">${{price.toFixed(2)}}</div>
               </div>
             </div>
           </div>
@@ -50,11 +50,11 @@
             <div class="title">客户信息</div>
             <div class="mui-input-row">
               <label>姓名</label>
-              <input type="text" id="Js_customer_name" placeholder="请输入姓名">
+              <input type="text" id="Js_customer_name" placeholder="请输入姓名" v-model="uName">
             </div>
             <div class="mui-input-row">
               <label>电话</label>
-              <input type="tel" id="Js_customer_mobile" placeholder="请输入电话">
+              <input type="tel" id="Js_customer_mobile" placeholder="请输入电话" v-model="uTel">
             </div>
           </div>
         </div>
@@ -112,46 +112,76 @@
           <div class="info">
             <p>
               下单时间：
-              <span id="JS_order_create_time">2019-04-12 02:07:11</span>
+              <span id="JS_order_create_time">{{new Date()|datetimeFilter}}</span>
             </p>
 
             <div id="Js_customer_info">
               <p>
                 客户姓名：
-                <span id="customer-name-text">测试002</span>
+                <span id="customer-name-text">{{uName}}</span>
               </p>
               <p>
                 客户电话：
-                <span id="customer-mobile-text">123321</span>
+                <span id="customer-mobile-text">{{uTel}}</span>
               </p>
             </div>
           </div>
         </div>
-        <!-- 底部悬浮按钮 -->
-        <div class="order-bill-btn">
+        <!-- 下单后底部悬浮按钮 -->
+        <div class="order-bill-btn" v-if="isorder==true">
           <div class="jiacai" @click="rollback">加单</div>
           <div class="maidan" @click="jump">买单</div>
+        </div>
+        <!-- 下单前的底部悬浮按钮 -->
+        <div class="cart-pay" v-if="isorder!=true">
+          <div class="cart-amount-text cart-total-amount">${{price.toFixed(2)}}</div>
+          <div class="cart-order-pay-btn" @click="addGoodsOrder">下单</div>
         </div>
       </div>
     </div>
   </div>
 </template>
 <style>
-.customer .mui-input-row label~input {
-    width: 80%;
-    font-size: 14px;
+.cart-pay .cart-order-pay-btn {
+  width: 30%;
+  background: #ed5b5b;
+  color: #fff;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  display: inline-block;
+  border: 0;
+}
+.cart-pay .cart-amount-text {
+  width: 70%;
+  font-size: 25px;
+  color: #ed5b5b;
+}
+.cart-pay {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  height: 50px;
+  background: #fff;
+  line-height: 50px;
+  text-align: center;
+}
+.customer .mui-input-row label ~ input {
+  width: 80%;
+  font-size: 14px;
 }
 .customer .mui-input-row label {
-    font-size: 14px;
-    width: 20%;
+  font-size: 14px;
+  width: 20%;
 }
-.customer .mui-input-row label~input {
-    width: 80%;
-    font-size: 14px;
+.customer .mui-input-row label ~ input {
+  width: 80%;
+  font-size: 14px;
 }
 .customer .mui-input-row label {
-    font-size: 14px;
-    width: 20%;
+  font-size: 14px;
+  width: 20%;
 }
 .customer .title {
   padding: 10px;
@@ -161,6 +191,8 @@
 }
 .customer {
   margin-top: 10px;
+  background: #ffffff;
+  margin-bottom: 50px;
 }
 .order-cart-content .info .cart-total .cart-total-item .value {
   -webkit-flex: 3;
@@ -415,7 +447,7 @@ ul {
 #clearOrder {
   float: right;
   border: 1px solid #ed5b5b;
-  padding: 0px 10px;
+  padding: 0px 10px !important;
   border-radius: 10px;
   color: #ed5b5b;
 }
@@ -451,13 +483,25 @@ ul {
 }
 </style>
 <script>
-import { MessageBox, Indicator } from "mint-ui";
+import { MessageBox, Indicator, Toast } from "mint-ui";
 export default {
   data() {
     return {
-      ShopCartList: this.$store.getters.GetShopCartList,
+      //商品渲染数组
+      ShopCartList:
+        this.$store.getters.GetShopCartList[0].name == undefined
+          ? ""
+          : this.$store.getters.GetShopCartList,
+      //保存小计
       price: 0,
-      isorder: true
+      //判断是否下单
+      isorder: false,
+      //用户电话
+      uTel: "",
+      //用户名字
+      uName: "",
+      //判断是否是加单
+      isAdd: this.$store.getters.GetIsAddOrder
     };
   },
   computed: {
@@ -467,6 +511,30 @@ export default {
     } */
   },
   methods: {
+    addGoodsOrder() {
+      if (
+        this.uName !== "" &&
+        this.uTel !== "" &&
+        this.ShopCartList !== ""
+      ) {
+        this.isorder = !this.isorder;
+      } else if (
+        (this.uName == "" && this.uTel !== "") ||
+        (this.uName == "" && this.uTel == "")
+      ) {
+        Toast({
+          message: "请输入客户姓名",
+          position: "middle",
+          duration: 3000
+        });
+      } else if (this.uName !== "" && this.uTel == "") {
+        Toast({
+          message: "请输入客户电话",
+          position: "middle",
+          duration: 3000
+        });
+      }
+    },
     jump() {
       this.$store.commit("updatePath", this.$route.path);
       this.$router.push("/transition");
@@ -488,12 +556,11 @@ export default {
         }
       });
     },
-    init() {
-      console.log(this.ShopCartList.length, 222);
-      console.log(this.ShopCartList[0].name != null);
-    },
+    init() {},
     rollback() {
-      this.$router.push("/order");
+      this.$store.commit("updateIsAddOrder", true);
+      console.log(this.isAdd)
+      //this.$router.push("/order");
     },
     CputeSum() {
       var prices = 0;
@@ -506,6 +573,11 @@ export default {
   created() {
     this.init();
     this.CputeSum();
+    console.log(this.isAdd)
+  },
+  mounted: function() {
+    /* var Uname = document.getElementById("Js_customer_name");
+    console.log(Uname.innerHTML) */
   }
 };
 </script>

@@ -1,165 +1,186 @@
 <template>
-  <div>
-    <div class="mui-content mui-row mui-fullscreen" style="top:45px">
-      <div class="mui-col-xs-3 bg-white">
-        <div
-          id="segmentedControls"
-          class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-vertical"
-        >
-          <a
-            class="mui-control-item Set-Width"
-            :data-index="i"
-            :href="'#content'+(i+1)"
-            v-for="(item,i) in list"
-            :key="i"
-          >{{item.name}}</a>
+    <div>
+      <div class="mui-content mui-row mui-fullscreen" style="top:45px">
+        <div class="mui-col-xs-3 bg-white">
+          <div
+            id="segmentedControls"
+            class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-vertical"
+          >
+            <a
+              class="mui-control-item Set-Width"
+              :data-index="i"
+              :href="'#content'+(i+1)"
+              v-for="(item,i) in list"
+              :key="i"
+            >{{item.name}}</a>
+          </div>
         </div>
-      </div>
-      <div
-        id="segmentedControlContents"
-        class="mui-col-xs-9"
-        style="border-left: 1px solid #c8c7cc;"
-      >
-        <div :id="'content'+(u+1)" class="mui-control-content" v-for="(item,u) in list" :key="u">
-          <div class="goods-title">{{item.name}}</div>
-          <div class="flex" v-for="(n ,i) in item.goodsList" :key="i">
-            <div class="icon">
-              <img
-                src="http://fuss10.elemecdn.com/c/cd/c12745ed8a5171e13b427dbc39401jpeg.jpeg?imageView2/1/w/114/h/114"
-                alt
-                width="57"
-                height="57"
-              >
-            </div>
-            <div class="flex-cart" @click="GetIndex">
-              <nav>
-                <h4 class="title">{{n.name}}</h4>
-                <h4 class="price money">{{n.amount}}</h4>
-              </nav>
-              <!-- -->
-              <nav v-if="n.hasOwnProperty('specificationInfoList')==false" class="nav-btn">
+        <div
+          id="segmentedControlContents"
+          class="mui-col-xs-9"
+          style="border-left: 1px solid #c8c7cc;"
+        >
+          <div :id="'content'+(u+1)" class="mui-control-content" v-for="(item,u) in list" :key="u">
+            <div class="goods-title">{{item.name}}</div>
+            <div class="flex" v-for="(n ,i) in item.goodsList" :key="i">
+              <div class="icon">
                 <img
-                  src="../../img/del.png"
-                  :data-nid="i"
-                  :data-lid="item.id"
-                  @click="minCount"
-                  v-if="n.num>0"
-                  class="transform cart-btn"
+                  src="http://fuss10.elemecdn.com/c/cd/c12745ed8a5171e13b427dbc39401jpeg.jpeg?imageView2/1/w/114/h/114"
+                  alt
+                  width="57"
+                  height="57"
                 >
-                <span
-                  style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
-                  v-if="n.num>0"
-                >{{n.num}}</span>
-                <img src="../../img/add.png" id="FlyBill" :data-pid="item.id" @click="addCount(i)">
-              </nav>
-              <div v-if="n.hasOwnProperty('specificationInfoList')" class="spec-box">
-                <div class="spec" @click="specpopup" :data-lid="u" :data-nid="i">选规格</div>
+              </div>
+              <div class="flex-cart" @click="GetIndex">
+                <div class="test">
+                  <h4 class="title">{{n.name}}</h4>
+                </div>
+                <div class="price money">{{n.amount}}</div>
+                <!-- -->
+                <div v-if="n.hasOwnProperty('specificationInfoList')==false" class="nav-btn">
+                  <img
+                    src="../../img/del.png"
+                    :data-nid="i"
+                    :data-lid="item.id"
+                    @click="minCount"
+                    v-show="n.num>0"
+                    class="transform cart-btn"
+                  >
+                  <span
+                    style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
+                    v-show="n.num>0"
+                  >{{n.num}}</span>
+                  <img
+                    src="../../img/add.png"
+                    id="FlyBill"
+                    :data-pid="item.id"
+                    @click="addCount(i)"
+                  >
+                </div>
+                <div v-if="n.hasOwnProperty('specificationInfoList')" class="spec-box">
+                  <div class="spec" @click="specpopup" :data-lid="u" :data-nid="i">选规格</div>
+                </div>
               </div>
             </div>
           </div>
+          <div style="height:2.5rem"></div>
         </div>
-        <div style="height:2.5rem"></div>
       </div>
-    </div>
-    <div class="shopcart disabled">
-      <!--底部悬浮div-->
-      <div class="content">
-        <div class="content-left" @click="toggleList()">
-          <div class="logo-wrapper">
-            <div class="logo" style="line-height: 2.5rem;">
-              <i class="layui-icon layui-icon-cart d-target" style="font-size:25px;"></i>
+      <div class="shopcart disabled">
+        <!--底部悬浮div-->
+        <div class="content">
+          <div class="content-left" @click="toggleList()">
+            <div class="logo-wrapper">
+              <div class="logo" style="line-height: 2.5rem;">
+                <i class="layui-icon layui-icon-cart d-target" style="font-size:25px;"></i>
+              </div>
+              <div class="num" style="display: none;">{{Count}}</div>
             </div>
-            <div class="num" style="display: none;">{{Count}}</div>
+            <div class="price">${{price.toFixed(2)}}</div>
+            <div class="desc"></div>
           </div>
-          <div class="price">${{price.toFixed(2)}}</div>
-          <div class="desc"></div>
-        </div>
-        <div class="content-right">
-          <div class="pay" @click="orderConfirm()">去下单</div>
+          <div class="content-right">
+            <div class="pay" @click="orderConfirm()">去下单</div>
+          </div>
         </div>
       </div>
-    </div>
-    <!--购物车弹窗-->
-    <mt-popup
-      v-if="Count>0"
-      v-model="popupVisible"
-      position="bottom"
-      style="width:100%;z-index:2019;margin-bottom:2.8rem;border-top-left-radius: 12px;border-top-right-radius: 12px;"
-    >
-      <!--购物车内容-->
-      <div class="flex Space-between ShopCart-height">
-        <div>购物车</div>
-        <div class="mui-icon mui-icon-trash">
-          <span class="clear price" @click="empty()">清空</span>
+      <!--购物车弹窗-->
+      <mt-popup
+        v-if="Count>0"
+        v-model="popupVisible"
+        position="bottom"
+        style="width:100%;z-index:2019;margin-bottom:2.8rem;border-top-left-radius: 12px;border-top-right-radius: 12px;"
+      >
+        <!--购物车内容-->
+        <div class="flex Space-between ShopCart-height">
+          <div>购物车</div>
+          <div class="mui-icon mui-icon-trash">
+            <span class="clear price" @click="empty()">清空</span>
+          </div>
         </div>
-      </div>
-      <div class="list-content">
-        <ul>
-          <li class="food border-1px" v-for="(item,i) in ShopCartList" :key="i">
-            <div class="inline-block">{{item.name}}</div>
-            <div class="inline-block list-float-right">
-              <span class="price">${{item.amount}}</span>
-              <div
-                class="mui-icon mui-icon-minus cart-btn transform padding"
-                @click="ShopCartMin"
-                :data-lid="item.id"
-                :data-nid="i"
-              ></div>
-              <span style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;">{{item.num}}</span>
-              <div
-                class="mui-icon mui-icon-plus cart-btn padding"
-                @click="ShopCartAdd"
-                :data-pid="i"
-              ></div>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </mt-popup>
-    <mt-popup v-model="spec" popup-transition="popup-fade" class="spec-pop">
-      <div class="spec-title">
+        <div class="list-content">
+          <ul>
+            <li class="food border-1px" v-for="(item,i) in ShopCartList" :key="i">
+              <div class="inline-block">{{item.name}}</div>
+              <div class="inline-block list-float-right">
+                <span class="price">${{item.amount}}</span>
+                <div
+                  class="mui-icon mui-icon-minus cart-btn transform padding"
+                  @click="ShopCartMin"
+                  :data-lid="item.id"
+                  :data-nid="i"
+                ></div>
+                <span
+                  style="font-size:12px;padding-left: 0.5rem;padding-right: 0.5rem;"
+                >{{item.num}}</span>
+                <div
+                  class="mui-icon mui-icon-plus cart-btn padding"
+                  @click="ShopCartAdd"
+                  :data-pid="i"
+                ></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </mt-popup>
+      <mt-popup v-model="spec" popup-transition="popup-fade" class="spec-pop">
+        <div class="spec-title">
+          <div>&nbsp;</div>
+          <div class="spec-title-name">{{specItem[0].name}}</div>
+          <span class="mui-icon mui-icon-closeempty spec-title-icon" @click="CloseSpec"></span>
+        </div>
+        <div class="spec-type">
+          <span class="spec-type-font">酸辣味:</span>
+        </div>
+        <div class="spec-select">
+          <div class="spec-item">
+            <span class="spec-item-font">酸辣味</span>
+          </div>
+          <div class="spec-item spec-item-active">
+            <span class="spec-item-font">火锅味</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-item-font">香辣味</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-item-font">天蝎味</span>
+          </div>
+        </div>
         <div>&nbsp;</div>
-        <div class="spec-title-name">{{specItem[0].name}}</div>
-        <span class="mui-icon mui-icon-closeempty spec-title-icon" @click="CloseSpec"></span>
-      </div>
-      <div class="spec-type">
-        <span class="spec-type-font">酸辣味:</span>
-      </div>
-      <div class="spec-select">
-        <div class="spec-item">
-          <span class="spec-item-font">酸辣味</span>
-        </div>
-        <div class="spec-item spec-item-active">
-          <span class="spec-item-font">火锅味</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-item-font">香辣味</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-item-font">天蝎味</span>
-        </div>
-      </div>
-      <div>&nbsp;</div>
 
-      <div class="spec-bottom">
-        <div class="spec-bottom-left">
-          <span style="color:red">¥</span>
-          <span class="spec-price">12</span>
-          <span class="spec-bottom-font">(酸辣味)</span>
+        <div class="spec-bottom">
+          <div class="spec-bottom-left">
+            <span style="color:red">¥</span>
+            <span class="spec-price">12</span>
+            <span class="spec-bottom-font">(酸辣味)</span>
+          </div>
+          <div class="spec-bottom-right" @click="addSpecCount">
+            <span class="spec-bottom-icon">+</span>
+            <span class="spec-bottom-fonts">加入购物车</span>
+          </div>
         </div>
-        <div class="spec-bottom-right" @click="addSpecCount">
-          <span class="spec-bottom-icon">+</span>
-          <span class="spec-bottom-fonts">加入购物车</span>
-        </div>
-      </div>
-    </mt-popup>
-  </div>
+      </mt-popup>
+    </div>
 </template>
 
 <style scoped>
+.fade-enter,
+.fade-leave-active {
+  opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.test {
+  position: absolute;
+}
 .nav-btn {
-  position: relative;
-  top: 1rem;
+  position: absolute;
+  /* left: 4.5rem; */
+  /* top: 1rem; */
+  bottom: 0.8rem;
+  right: 0;
 }
 .ShopCart-height {
   height: 1.5rem !important;
@@ -170,7 +191,7 @@
 }
 .money {
   position: relative;
-  top: 0.2rem;
+  top: 1rem;
 }
 .spec-item-active {
   background: #3bc5e6;
@@ -318,14 +339,17 @@
 }
 
 .spec {
-  width: 70px;
   text-align: center;
   background: #9cd6e4;
   border-radius: 14px;
-  height: 33px;
-  font-size: 15px;
-  line-height: 33px;
-  padding: 0px;
+  height: 24px;
+  font-size: 12px;
+  line-height: 24px;
+  padding-right: 10px;
+  position: relative;
+  padding-left: 10px;
+  top: 0.8rem;
+  left: 0.8rem;
 }
 
 .mui-active {
@@ -427,8 +451,8 @@ ul {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  width: 60px;
-  height: 28px;
+  position: relative;
+  top: -1.2rem;
 }
 
 .type {
@@ -451,7 +475,7 @@ ul {
 }
 
 .cart-btn {
-  width: 30%;
+  width: 21px;
 }
 
 .flex-cart {
@@ -471,6 +495,7 @@ ul {
   padding: 0.8rem;
   padding-left: 0;
   justify-content: space-between;
+  position: relative;
 }
 
 .transform {
@@ -485,7 +510,7 @@ ul {
 
 @keyframes rotating {
   from {
-    transform: translateX(45px) rotate(0deg);
+    transform: translateX(-45px) rotate(0deg);
     transform-origin: center;
     opacity: 0;
   }
@@ -513,8 +538,8 @@ ul {
   border-radius: 100%;
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
-  background: #ef2020e0;
+  color: #fff !important;
+  background: #ef2020e0 !important;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
   min-width: 20px;
   min-height: 20px;
@@ -571,19 +596,6 @@ ul {
 
 .icon-shopping_cart:before {
   content: "\E907";
-}
-
-[class^="icon-"],
-[class*=" icon-"] {
-  font-family: "sell-icon" !important;
-  speak: none;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .shopcart .content .content-left .logo-wrapper .logo .icon-shopping_cart {
@@ -698,8 +710,8 @@ export default {
       SpecPrice: 0,
       //存放弹窗选中的商品
       SpecList: [],
-      //临时保存一个选规格商品的数据
-      specItem: [(name = "")]
+      //临时保存一个选规格商品的数据,给一个空的name,让数据渲染出来不至于报错
+      specItem: [(name = "")],
     };
   },
   methods: {
@@ -801,7 +813,6 @@ export default {
             for (var row of item.goodsList) {
               row.num = 0;
             }
-            console.log(item.goodsList.length);
           }
           console.log(this.list);
         });

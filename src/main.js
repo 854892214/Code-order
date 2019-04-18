@@ -18,7 +18,12 @@ var store = new Vuex.Store({
     //购物车的商品数
     CartCount: sessionStorage.getItem('Count') || 0,
     //存储当前组件的路由
-    NowPath: sessionStorage.getItem('NowPath') || null
+    NowPath: sessionStorage.getItem('NowPath') || null,
+    //存储点击返回时的当前组件路由
+    backPath: sessionStorage.getItem('backPath') || null,
+    //存储加单状态
+    isAddOrder: sessionStorage.getItem('isAddOrder') || false
+
   },
   mutations: {
     initMenuList(state, list) {
@@ -32,6 +37,14 @@ var store = new Vuex.Store({
     updatePath(state, NowPath) {
       state.NowPath = NowPath
       sessionStorage.setItem("NowPath", NowPath)
+    },
+    callbackPath(state, backPath) {
+      state.backPath = backPath
+      sessionStorage.setItem("backPath", backPath)
+    },
+    updateIsAddOrder(state, isAddOrder) {
+      state.isAddOrder = isAddOrder
+      sessionStorage.setItem("isAddOrder", isAddOrder)
     }
   },
   getters: {
@@ -40,6 +53,12 @@ var store = new Vuex.Store({
     },
     GetPath: function (state) {
       return state.NowPath
+    },
+    GetbackPath: function (state) {
+      return state.backPath
+    },
+    GetIsAddOrder: function (state) {
+      return state.isAddOrder
     },
   }
 })
@@ -52,6 +71,18 @@ axios.defaults.withCredentials = true;
 Vue.component(Popup.name, Popup);
 Vue.component(MessageBox.name, MessageBox);
 Vue.component(Spinner.name, Spinner);
+Vue.filter("datetimeFilter", function (val) {
+  var date = new Date(val);
+  var y = date.getFullYear();
+  var m = date.getMonth();
+  var d = date.getDay();
+  var h = date.getHours();
+  var mi = date.getMinutes();
+  var s = date.getSeconds();
+  m < 10 && (m = "0" + m);
+  d < 10 && (d = "0" + d);
+  return `${y}-${m}-${d} ${h}:${mi}:${s}`;
+})
 new Vue({
   router,
   render: h => h(App),

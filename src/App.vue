@@ -1,13 +1,13 @@
 <template>
   <div>
     <header class="mui-bar mui-bar-nav">
-      <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left" style="color:red"></a>
+      <a class="mui-icon mui-icon-back" style="color:red" @click="jump"></a>
       <h1 class="mui-title">{{val}}</h1>
-      <span class="float-right">堂食</span>
+      <span class="float-right">自取</span>
     </header>
     <!-- 占位符用来显示其它的组件-->
-    <transition name="fade" mode="out-in">
-    <router-view></router-view>
+    <transition>
+      <router-view :key="key"></router-view>
     </transition>
   </div>
 </template>
@@ -28,6 +28,22 @@ export default {
     };
   },
   methods: {
+    jump() {
+      /* this.$store.commit("callbackPath", this.backpath);
+      this.$router.push("/transition"); */
+      if (this.$route.path == "/details") {
+        this.$router.push("order");
+        return;
+      }
+      if (this.$route.path == "/order") {
+        this.$router.push("home");
+        return;
+      }
+      if (this.$route.path == "/bill") {
+        this.$router.push("details");
+        return;
+      }
+    },
     init() {
       if (this.$route.path == "/home") {
         document.getElementsByClassName("mui-icon")[0].className +=
@@ -49,10 +65,43 @@ export default {
   created() {},
   mounted: function() {
     //this.init();
+    document.getElementsByClassName("mui-icon")[0].className += " display-none";
   },
   watch: {
     // 如果路由有变化，会再次执行该方法
-    $route: "init"
+    $route: {
+      handler: function() {
+        var nowPath = this.$route.path;
+        if (nowPath == "/transition") {
+          document.getElementsByClassName("mui-bar")[0].className +=
+            " display-none";
+        }
+        if (nowPath !== "/transition") {
+          document
+            .getElementsByClassName("mui-bar")[0]
+            .classList.remove("display-none");
+        }
+        if (nowPath !== "/home") {
+          document
+            .getElementsByClassName("mui-icon")[0]
+            .classList.remove("display-none");
+        }
+        if (nowPath !== "/details") {
+          document
+            .getElementsByClassName("mui-icon")[0]
+            .classList.remove("display-none");
+        }
+        //this.$router.go(0)
+      }
+    }
+  },
+  computed: {
+    key() {
+      //console.log('.....')
+      return this.$route.name !== undefined
+        ? this.$route.name + new Date()
+        : this.$route + new Date();
+    }
   }
 };
 </script>
