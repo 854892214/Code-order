@@ -13,7 +13,7 @@ Vue.config.productionTip = false
 Vue.use(Vuex)
 var store = new Vuex.Store({
   state: {
-    //点菜页面的ShopCartList
+    //点菜页面的ShopCartList,传入Details页面
     menuList: sessionStorage.getItem('menuList'),
     //购物车的商品数
     CartCount: sessionStorage.getItem('Count') || 0,
@@ -22,8 +22,9 @@ var store = new Vuex.Store({
     //存储点击返回时的当前组件路由
     backPath: sessionStorage.getItem('backPath') || null,
     //存储加单状态
-    isAddOrder: sessionStorage.getItem('isAddOrder') || false
-
+    isAddOrder: sessionStorage.getItem('isAddOrder') || false,
+    //EndList 加单后商品放入这里
+    EndList:[],
   },
   mutations: {
     initMenuList(state, list) {
@@ -45,6 +46,12 @@ var store = new Vuex.Store({
     updateIsAddOrder(state, isAddOrder) {
       state.isAddOrder = isAddOrder
       sessionStorage.setItem("isAddOrder", isAddOrder)
+    },
+    //全局修改EndList
+    updateEndList(state, EndList) {
+      for(let item of EndList){
+        state.EndList.push(item)
+      }
     }
   },
   getters: {
@@ -58,10 +65,15 @@ var store = new Vuex.Store({
       return state.backPath
     },
     GetIsAddOrder: function (state) {
-      return state.isAddOrder
+      return Boolean(state.isAddOrder)
+    },
+    GetEndList: function (state) {
+      //去重后返回
+      return state.EndList
     },
   }
 })
+
 import qs from "qs"
 import axios from "axios"
 Vue.prototype.axios = axios;
@@ -83,6 +95,7 @@ Vue.filter("datetimeFilter", function (val) {
   d < 10 && (d = "0" + d);
   return `${y}-${m}-${d} ${h}:${mi}:${s}`;
 })
+
 new Vue({
   router,
   render: h => h(App),

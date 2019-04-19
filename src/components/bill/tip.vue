@@ -22,7 +22,7 @@
           </div>
           <div class="add-tip-btn">添加</div>
         </div>
-        <div class="tip_table_cell" onclick="clickTip(0)">
+        <div class="tip_table_cell" @click="nottip">
           <p>无小费</p>
         </div>
       </div>
@@ -36,7 +36,12 @@ export default {
   data() {
     return {};
   },
-  props: ["msgFather"]
+  props: ["msgFather"],
+  methods:{
+    nottip(){
+      console.log('无小费')
+    }
+  }
 };
 </script>
 

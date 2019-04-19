@@ -39,7 +39,7 @@ export default {
   methods: {
     jump() {
       this.$store.commit("updatePath", this.$route.path);
-      this.$router.push("/transition");
+      this.$router.push("/order");
     }
   }
 };

@@ -16,9 +16,6 @@ export default {
   },
   methods: {},
   created() {
-    console.log("回退的要去的路由:" + this.backpath);
-    console.log("前进的当前:" + this.path);
-    console.log("初始化路由:" + this.$store.getters.GetbackPath);
     if (this.path == "/details") {
       this.type = "double-bounce";
     }
@@ -58,49 +55,8 @@ export default {
           return;
         }
       }
-      /* 向上判断 */
-      /* if (this.backpath == "/details") {
-        if (this.count <= 1) {
-          this.$router.push("order");
-          return;
-        }
-      }
-
-      if (this.backpath == "/order") {
-        if (this.count <= 1) {
-          this.$router.push("home");
-          return;
-        }
-      }
-      if (this.backpath == "/bill") {
-        if (this.count <= 1) {
-          this.$router.push("details");
-          return;
-        }
-      }
-      if (this.backpath == "/home") {
-        if (this.count <= 1) {
-          this.$router.push("home");
-          return;
-        }
-      } */
-
       this.count--;
     }, 1000);
-    /*     var path = this.$store.getters.GetPath;
-    console.log(path, 2);
-    if (path == "/order") {
-      this.type = "double-bounce";
-      this.ComTime();
-    }
-    if (path == "/bill") {
-      this.type = "triple-bounce";
-      this.ComTime();
-    }
-    if (path == "/details") {
-      this.type = "fading-circle";
-      this.ComTime();
-    } */
   },
   destroyed: function() {
     clearInterval(this.timer);

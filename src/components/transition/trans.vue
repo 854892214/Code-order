@@ -1,24 +1,38 @@
 <template>
-  <div class="loading">
-      这是trans页面
+  <div class="transition-height">
+    <mt-spinner type="double-bounce" color="red" :size="100" style="margin-top:150px;margin-left:150px;"></mt-spinner>
   </div>
 </template>
 
 <script>
 export default {
-    name:'Loading'
+    name:'HomeHeader'
 };
 </script>
 
-<style scoped>
-.loading {
-  position: fixed;
+<style>
+.mint-spinner-snake {
   left: 0;
   top: 0;
-  background: url("../../img/loading.svg") center center no-repeat #fff;
-  width: 100px;
-  height: 100px;
-  z-index: 1000;
-  background: red
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  margin-top: 55%;
+}
+.mint-spinner-double-bounce{
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  margin-top: 55%;
+}
+.mint-spinner-fading-circle {
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  margin-top: 55%;
 }
 </style>

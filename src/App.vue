@@ -43,23 +43,6 @@ export default {
         this.$router.push("details");
         return;
       }
-    },
-    init() {
-      if (this.$route.path == "/home") {
-        document.getElementsByClassName("mui-icon")[0].className +=
-          " display-none";
-      }
-      if (this.$route.path == "/order") {
-        this.val = "在线点单";
-        document.getElementsByClassName("float-right")[0].className =
-          "float-right";
-      }
-      if (this.$route.path == "/details") {
-        this.val = "账单详情";
-        document.getElementsByClassName("float-right")[0].className +=
-          " display-none";
-      }
-      //alert(1)
     }
   },
   created() {},
@@ -86,10 +69,18 @@ export default {
             .getElementsByClassName("mui-icon")[0]
             .classList.remove("display-none");
         }
-        if (nowPath !== "/details") {
+        if (nowPath == "/home") {
           document
-            .getElementsByClassName("mui-icon")[0]
-            .classList.remove("display-none");
+            .getElementsByClassName("mui-icon")[0].className+=" display-none"
+        }
+        if (nowPath == "/order") {
+          this.val="在线点单"
+        }
+        if (nowPath == "/details") {
+          this.val="账单详情"
+        }
+        if (nowPath == "/bill") {
+          this.val="账单"
         }
         //this.$router.go(0)
       }
