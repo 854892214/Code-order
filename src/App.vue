@@ -48,7 +48,6 @@ export default {
   created() {},
   mounted: function() {
     //this.init();
-    document.getElementsByClassName("mui-icon")[0].className += " display-none";
   },
   watch: {
     // 如果路由有变化，会再次执行该方法

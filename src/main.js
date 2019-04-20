@@ -24,7 +24,9 @@ var store = new Vuex.Store({
     //存储加单状态
     isAddOrder: sessionStorage.getItem('isAddOrder') || false,
     //EndList 加单后商品放入这里
-    EndList:[],
+    EndList: [],
+    //EndList数组模式
+    EndLists: []
   },
   mutations: {
     initMenuList(state, list) {
@@ -49,9 +51,18 @@ var store = new Vuex.Store({
     },
     //全局修改EndList
     updateEndList(state, EndList) {
-      for(let item of EndList){
+      state.EndList = []
+      for (let item of EndList) {
         state.EndList.push(item)
       }
+    },
+    //全局修改EndLists
+    updateEndLists(state, EndLists) {
+      state.EndLists = EndLists
+      for(let item of EndLists){
+        state.EndLists.push(item)
+      }
+      sessionStorage.setItem("EndLists", EndLists)
     }
   },
   getters: {
@@ -65,11 +76,19 @@ var store = new Vuex.Store({
       return state.backPath
     },
     GetIsAddOrder: function (state) {
+      if (state.isAddOrder == 'false') {
+        return false
+      }
+      if (state.isAddOrder == 'true') {
+        return true
+      }
       return Boolean(state.isAddOrder)
     },
     GetEndList: function (state) {
-      //去重后返回
       return state.EndList
+    },
+    GetEndLists: function (state) {
+      return state.EndLists
     },
   }
 })
